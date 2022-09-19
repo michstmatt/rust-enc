@@ -253,7 +253,7 @@ fn _mix_columns(block: &mut Block, matrix: &[[u8; 4]; 4]) {
         }
     }
 }
-pub fn mix_columns(block: &mut Block) {
+fn mix_columns(block: &mut Block) {
     _mix_columns(block, &COL_MATRIX);
 }
 fn i_mix_columns(block: &mut Block) {
@@ -276,7 +276,7 @@ fn pad_string(data: &[u8]) -> std::vec::Vec<u8> {
     return slice;
 }
 
-pub fn encrypt(data: &[u8], key: &[u8], rounds: u8) -> std::vec::Vec<u8> {
+pub fn crypt(data: &[u8], key: &[u8], rounds: u8, enc: bool) -> std::vec::Vec<u8> {
     let mut b_key = [0u8; 16];
 
     let mut res: std::vec::Vec<u8> = Vec::new();
@@ -290,10 +290,17 @@ pub fn encrypt(data: &[u8], key: &[u8], rounds: u8) -> std::vec::Vec<u8> {
         slice.copy_from_slice(&new_data[pos..pos + 16]);
 
         for _round in 0..rounds {
-            sub_bytes(&mut slice);
-            shift_rows(&mut slice);
-            mix_columns(&mut slice);
-            add_round_key(&mut slice, &b_key);
+            if enc {
+                sub_bytes(&mut slice);
+                shift_rows(&mut slice);
+                mix_columns(&mut slice);
+                add_round_key(&mut slice, &b_key);
+            } else {
+                add_round_key(&mut slice, &b_key);
+                i_mix_columns(&mut slice);
+                i_shift_rows(&mut slice);
+                i_sub_bytes(&mut slice);
+            }
         }
 
         res.append(&mut slice.to_vec());
@@ -303,29 +310,10 @@ pub fn encrypt(data: &[u8], key: &[u8], rounds: u8) -> std::vec::Vec<u8> {
     res
 }
 
+pub fn encrypt(data: &[u8], key: &[u8], rounds: u8) -> std::vec::Vec<u8> {
+    crypt(data, key, rounds, true)
+}
+
 pub fn decrypt(data: &[u8], key: &[u8], rounds: u8) -> std::vec::Vec<u8> {
-    let mut b_key = [0u8; 16];
-
-    let mut res: std::vec::Vec<u8> = Vec::new();
-
-    let new_data = pad_string(data);
-    let new_key = pad_string(key);
-    b_key.copy_from_slice(&new_key);
-
-    for pos in (0..new_data.len()).step_by(16) {
-        let mut slice: Block = [0u8; 16];
-        slice.copy_from_slice(&new_data[pos..pos + 16]);
-
-        for _round in 0..rounds {
-            add_round_key(&mut slice, &b_key);
-            i_mix_columns(&mut slice);
-            i_shift_rows(&mut slice);
-            i_sub_bytes(&mut slice);
-        }
-
-        res.append(&mut slice.to_vec());
-        break;
-    }
-
-    res
+    crypt(data, key, rounds, false)
 }
