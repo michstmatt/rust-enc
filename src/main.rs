@@ -24,7 +24,6 @@ fn main() {
 
     let num_rounds = 10;
 
-
     match method.as_str() {
         "enc" => {
             let res = encrypt(value.as_bytes(), password.as_bytes(), num_rounds);

@@ -275,6 +275,22 @@ fn pad_string(data: &[u8]) -> std::vec::Vec<u8> {
     return slice;
 }
 
+fn trim_string(data: std::vec::Vec<u8>) -> std::vec::Vec<u8> {
+    let mut pos = 0;
+
+    for idx in 0 .. data.len() {
+        if data[idx] == 0 {
+            pos = idx;
+            break;
+        }
+    }
+
+    match pos {
+        0 => data,
+        _ => data[0..pos].to_vec(),
+    }
+}
+
 pub fn crypt(
     data: &[u8],
     key: &[u8],
@@ -313,10 +329,11 @@ pub fn encrypt(data: &[u8], key: &[u8], rounds: u8) -> std::vec::Vec<u8> {
 }
 
 pub fn decrypt(data: &[u8], key: &[u8], rounds: u8) -> std::vec::Vec<u8> {
-    crypt(data, key, rounds, |mut slice, b_key| {
+    let res = crypt(data, key, rounds, |mut slice, b_key| {
         add_round_key(&mut slice, &b_key);
         i_mix_columns(&mut slice);
         i_shift_rows(&mut slice);
         i_sub_bytes(&mut slice);
-    })
+    });
+    trim_string(res)
 }
