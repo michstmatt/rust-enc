@@ -163,7 +163,6 @@ static GF_14: [u8; 256] = [
 
 fn galois_mult(val: u8, coeff: u8) -> u8 {
     let val1 = val as usize;
-
     match coeff {
         1 => val,
         2 => GF_2[val1],
