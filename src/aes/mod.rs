@@ -298,7 +298,6 @@ pub fn crypt(
         }
 
         res.append(&mut slice.to_vec());
-        break;
     }
 
     res
