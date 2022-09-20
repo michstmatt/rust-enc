@@ -32,8 +32,10 @@ fn main() {
         "dec" => {
             let bytes = decode(&value).unwrap();
             let res = decrypt(bytes.as_slice(), password.as_bytes(), num_rounds);
-            let recovered = String::from_utf8(res).unwrap();
-            println!("{}", recovered);
+            match String::from_utf8(res){
+                Ok(recovered) => println!("{}", recovered),
+                Err(_) => println!("Failed to decrypt")
+            }
         },
 
         _ => help()
